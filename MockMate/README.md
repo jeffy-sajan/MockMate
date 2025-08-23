@@ -22,7 +22,7 @@ MockMate/
 
 ---
 
-## Phase 1: Project Setup & Core Infrastructure ✅
+## Phase 1: Project Setup & Core Infrastructure 
 
 ### What was accomplished:
 - Initialized Git repository and project structure (`client/` and `server/` folders).
@@ -35,7 +35,7 @@ MockMate/
 
 ---
 
-## Phase 2: User Authentication & Security ✅
+## Phase 2: User Authentication & Security 
 
 ### What was accomplished:
 - Switched backend database from PostgreSQL to MongoDB Atlas for easier integration and cloud access.
@@ -49,7 +49,7 @@ MockMate/
 
 ---
 
-## Phase 3: AI-Powered Interview Question Generation ✅
+## Phase 3: AI-Powered Interview Question Generation 
 
 ### What was accomplished:
 - Integrated Google Gemini API for generating interview questions and answers.
@@ -59,7 +59,7 @@ MockMate/
 
 ---
 
-## Phase 4: Enhanced Learning Features ✅
+## Phase 4: Enhanced Learning Features 
 
 ### What was accomplished:
 - Frontend integration of "Learn More" and pinning features.
