@@ -1,0 +1,6 @@
+express
+pg
+dotenv
+prisma (or sequelize)
+bcrypt
+jsonwebtoken 
