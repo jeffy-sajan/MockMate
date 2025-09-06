@@ -18,6 +18,7 @@ const MockInterview = () => {
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [sessionId, setSessionId] = useState(null);
 
   // Web Speech API setup
   const [recognition, setRecognition] = useState(null);
@@ -115,7 +116,8 @@ const MockInterview = () => {
     setError("");
     
     try {
-      const res = await fetch("http://localhost:5000/api/mock/feedback", {
+      // Get AI feedback
+      const feedbackRes = await fetch("/api/mock/feedback", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -124,14 +126,43 @@ const MockInterview = () => {
         body: JSON.stringify({ responses: userAnswers }),
       });
       
-      const data = await res.json();
-      if (res.ok) {
-        setFeedback(data.feedback);
-      } else {
-        setError(data.error || "Failed to get feedback");
+      const feedbackData = await feedbackRes.json();
+      if (!feedbackRes.ok) {
+        throw new Error(feedbackData.error || "Failed to get feedback");
       }
+      
+      setFeedback(feedbackData.feedback);
+      
+      // Save session to analytics
+      const sessionData = {
+        role,
+        description,
+        answers: userAnswers.map((answer, index) => ({
+          question: answer.question,
+          answer: answer.answer,
+          durationSeconds: Math.floor(Math.random() * 60) + 30, // Mock duration
+          confidenceScore: Math.random() * 0.4 + 0.5, // Mock confidence 0.5-0.9
+          topics: ["interview", "practice"] // Mock topics
+        })),
+        feedback: feedbackData.feedback
+      };
+      
+      const sessionRes = await fetch("/api/mock/session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(sessionData),
+      });
+      
+      if (sessionRes.ok) {
+        const sessionResult = await sessionRes.json();
+        setSessionId(sessionResult.sessionId);
+      }
+      
     } catch (err) {
-      setError("Server error");
+      setError(err.message || "Server error");
     }
     
     setLoading(false);
@@ -324,6 +355,14 @@ const MockInterview = () => {
             >
               📝 Generate New Questions
             </button>
+            {sessionId && (
+              <button
+                onClick={() => navigate('/analytics')}
+                className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition"
+              >
+                📊 View Analytics
+              </button>
+            )}
           </div>
           
           {error && (

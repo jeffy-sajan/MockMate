@@ -8,6 +8,8 @@ import Dashboard from "./components/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import GenerateQuestions from "./components/GenerateQuestions";
 import MockInterview from "./components/MockInterview";
+import AnalyticsDashboard from "./components/AnalyticsDashboard";
+import SessionDetails from "./components/SessionDetails";
 
 function App() {
   return (
@@ -39,6 +41,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analytics"
+              element={
+                <ProtectedRoute>
+                  <AnalyticsDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analytics/session/:id"
+              element={
+                <ProtectedRoute>
+                  <SessionDetails />
                 </ProtectedRoute>
               }
             />

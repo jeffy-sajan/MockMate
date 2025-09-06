@@ -6,6 +6,7 @@ require('dotenv').config();
 const cors = require('cors');
 
 const User = require('./models/User');
+const InterviewSession = require('./models/InterviewSession');
 const authenticateToken = require('./middleware');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
@@ -201,6 +202,297 @@ app.post('/api/mock/feedback', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to generate feedback' });
+  }
+});
+
+// --- Save Mock Interview Session & Compute Metrics ---
+app.post('/api/mock/session', authenticateToken, async (req, res) => {
+  const { role, description, answers, feedback } = req.body;
+  const userId = req.user.userId;
+  if (!answers || !Array.isArray(answers) || answers.length === 0) {
+    return res.status(400).json({ error: 'answers array is required' });
+  }
+
+  try {
+    const totalQuestions = answers.length;
+    const totalTime = answers.reduce((sum, a) => sum + (a.durationSeconds || 0), 0);
+    const avgAnswerTimeSec = totalQuestions > 0 ? totalTime / totalQuestions : 0;
+    const confidences = answers.map(a => typeof a.confidenceScore === 'number' ? a.confidenceScore : null).filter(v => v !== null);
+    const overallConfidence = confidences.length ? (confidences.reduce((s, v) => s + v, 0) / confidences.length) : undefined;
+
+    // Simple strengths/improvements extraction from feedback (heuristic)
+    const strengths = [];
+    const improvements = [];
+    if (typeof feedback === 'string') {
+      const lower = feedback.toLowerCase();
+      if (lower.includes('strength')) strengths.push('Strengths highlighted in feedback');
+      if (lower.includes('improve') || lower.includes('improvement')) improvements.push('Improvements suggested in feedback');
+    }
+
+    const session = new InterviewSession({
+      userId,
+      role,
+      description,
+      answers,
+      feedback,
+      metrics: {
+        totalQuestions,
+        avgAnswerTimeSec,
+        overallConfidence,
+        strengths,
+        improvements,
+      },
+    });
+
+    await session.save();
+    res.status(201).json({ sessionId: session._id, metrics: session.metrics });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to save session' });
+  }
+});
+
+// --- Get Interview History for current user ---
+app.get('/api/analytics/history', authenticateToken, async (req, res) => {
+  try {
+    const sessions = await InterviewSession.find({ userId: req.user.userId })
+      .sort({ createdAt: -1 })
+      .select('role createdAt metrics');
+    res.json({ sessions });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch history' });
+  }
+});
+
+// --- Get a single session details ---
+app.get('/api/analytics/session/:id', authenticateToken, async (req, res) => {
+  try {
+    const session = await InterviewSession.findOne({ _id: req.params.id, userId: req.user.userId });
+    if (!session) return res.status(404).json({ error: 'Session not found' });
+    res.json({ session });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch session' });
+  }
+});
+
+// --- Aggregated Summary for charts (rolling 30 days) ---
+app.get('/api/analytics/summary', authenticateToken, async (req, res) => {
+  try {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const sessions = await InterviewSession.find({ userId: req.user.userId, createdAt: { $gte: thirtyDaysAgo } });
+
+    const totalSessions = sessions.length;
+    const totalQuestions = sessions.reduce((s, sess) => s + (sess.metrics?.totalQuestions || 0), 0);
+    const avgAnswerTimeSec = totalSessions
+      ? (sessions.reduce((s, sess) => s + (sess.metrics?.avgAnswerTimeSec || 0), 0) / totalSessions)
+      : 0;
+    const avgConfidenceDenom = sessions.filter(sess => typeof sess.metrics?.overallConfidence === 'number').length;
+    const overallConfidence = avgConfidenceDenom
+      ? (sessions.reduce((s, sess) => s + (sess.metrics?.overallConfidence || 0), 0) / avgConfidenceDenom)
+      : undefined;
+
+    // Per-day counts for charts
+    const perDay = {};
+    sessions.forEach(sess => {
+      const key = new Date(sess.createdAt).toISOString().slice(0, 10);
+      perDay[key] = (perDay[key] || 0) + 1;
+    });
+
+    res.json({
+      totalSessions,
+      totalQuestions,
+      avgAnswerTimeSec,
+      overallConfidence,
+      perDay,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to compute summary' });
+  }
+});
+
+// --- Skill Gap Analysis & Recommendations ---
+app.get('/api/analytics/skill-gaps', authenticateToken, async (req, res) => {
+  try {
+    const sessions = await InterviewSession.find({ userId: req.user.userId })
+      .sort({ createdAt: -1 })
+      .limit(10); // Last 10 sessions for analysis
+
+    if (sessions.length === 0) {
+      return res.json({ 
+        skillGaps: [], 
+        recommendations: ["Start practicing mock interviews to identify skill gaps"],
+        overallScore: 0
+      });
+    }
+
+    // Analyze topics and confidence levels
+    const topicAnalysis = {};
+    const confidenceByTopic = {};
+    
+    sessions.forEach(session => {
+      session.answers?.forEach(answer => {
+        answer.topics?.forEach(topic => {
+          if (!topicAnalysis[topic]) {
+            topicAnalysis[topic] = { total: 0, confident: 0, avgConfidence: 0 };
+            confidenceByTopic[topic] = [];
+          }
+          topicAnalysis[topic].total++;
+          if (answer.confidenceScore) {
+            confidenceByTopic[topic].push(answer.confidenceScore);
+          }
+        });
+      });
+    });
+
+    // Calculate average confidence per topic
+    Object.keys(topicAnalysis).forEach(topic => {
+      const confidences = confidenceByTopic[topic];
+      if (confidences.length > 0) {
+        topicAnalysis[topic].avgConfidence = confidences.reduce((a, b) => a + b, 0) / confidences.length;
+        topicAnalysis[topic].confident = confidences.filter(c => c >= 0.7).length;
+      }
+    });
+
+    // Identify skill gaps (topics with low confidence)
+    const skillGaps = Object.entries(topicAnalysis)
+      .filter(([topic, data]) => data.avgConfidence < 0.6 && data.total >= 2)
+      .map(([topic, data]) => ({
+        topic,
+        avgConfidence: data.avgConfidence,
+        totalQuestions: data.total,
+        improvement: ((0.7 - data.avgConfidence) * 100).toFixed(1)
+      }))
+      .sort((a, b) => a.avgConfidence - b.avgConfidence);
+
+    // Generate AI-powered recommendations
+    const prompt = `Based on the following skill gap analysis, provide 3 specific, actionable recommendations for improvement:
+
+Skill Gaps:
+${skillGaps.map(gap => `- ${gap.topic}: ${(gap.avgConfidence * 100).toFixed(1)}% confidence (${gap.totalQuestions} questions)`).join('\n')}
+
+Provide specific study resources, practice exercises, or learning paths for each identified gap.`;
+
+    let recommendations = [];
+    try {
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      recommendations = text.split('\n').filter(line => line.trim()).slice(0, 5);
+    } catch (err) {
+      recommendations = [
+        "Practice more questions in identified weak areas",
+        "Review fundamental concepts for low-confidence topics",
+        "Focus on practical applications and examples"
+      ];
+    }
+
+    // Calculate overall performance score
+    const allConfidences = sessions.flatMap(s => 
+      s.answers?.map(a => a.confidenceScore).filter(c => c !== undefined) || []
+    );
+    const overallScore = allConfidences.length > 0 
+      ? (allConfidences.reduce((a, b) => a + b, 0) / allConfidences.length) * 100
+      : 0;
+
+    res.json({
+      skillGaps,
+      recommendations,
+      overallScore: overallScore.toFixed(1),
+      totalSessionsAnalyzed: sessions.length
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to analyze skill gaps' });
+  }
+});
+
+// --- Goal Setting & Tracking ---
+app.post('/api/goals', authenticateToken, async (req, res) => {
+  const { title, description, targetValue, unit, deadline } = req.body;
+  const userId = req.user.userId;
+  
+  if (!title || !targetValue || !unit) {
+    return res.status(400).json({ error: 'Title, target value, and unit are required' });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const goal = {
+      title,
+      description,
+      targetValue,
+      unit,
+      deadline: deadline ? new Date(deadline) : undefined,
+    };
+
+    user.goals = user.goals || [];
+    user.goals.push(goal);
+    await user.save();
+
+    res.status(201).json({ message: 'Goal created successfully', goalId: user.goals[user.goals.length - 1]._id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to create goal' });
+  }
+});
+
+app.get('/api/goals', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    
+    res.json({ goals: user.goals || [] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch goals' });
+  }
+});
+
+app.put('/api/goals/:goalId', authenticateToken, async (req, res) => {
+  const { goalId } = req.params;
+  const { currentValue, isCompleted } = req.body;
+  const userId = req.user.userId;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const goal = user.goals.id(goalId);
+    if (!goal) return res.status(404).json({ error: 'Goal not found' });
+
+    if (currentValue !== undefined) goal.currentValue = currentValue;
+    if (isCompleted !== undefined) goal.isCompleted = isCompleted;
+
+    await user.save();
+    res.json({ message: 'Goal updated successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to update goal' });
+  }
+});
+
+app.delete('/api/goals/:goalId', authenticateToken, async (req, res) => {
+  const { goalId } = req.params;
+  const userId = req.user.userId;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    user.goals = user.goals.filter(goal => goal._id.toString() !== goalId);
+    await user.save();
+
+    res.json({ message: 'Goal deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to delete goal' });
   }
 });
 
