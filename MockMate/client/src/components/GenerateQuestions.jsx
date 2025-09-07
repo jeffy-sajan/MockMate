@@ -41,7 +41,10 @@ const GenerateQuestions = () => {
     try {
       const res = await fetch("http://localhost:5000/api/questions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
         body: JSON.stringify({ role, description }),
       });
       const data = await res.json();

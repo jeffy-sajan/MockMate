@@ -88,7 +88,7 @@ app.get('/api/protected', authenticateToken, (req, res) => {
 // Gemini API setup
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-app.post('/api/questions', async (req, res) => {
+app.post('/api/questions', authenticateToken, async (req, res) => {
   const { role, description } = req.body;
   if (!role || !description) {
     return res.status(400).json({ error: "Role and description are required" });
@@ -117,6 +117,18 @@ app.post('/api/questions', async (req, res) => {
       // If parsing fails, return the raw text
       return res.json({ questions: text });
     }
+
+    // Save the generated Q&A as a new InterviewSession for the user
+    const userId = req.user.userId;
+    const answers = questions.map(q => ({ question: q.question, answer: q.answer }));
+    const session = new InterviewSession({
+      userId,
+      role,
+      description,
+      answers,
+      createdAt: new Date()
+    });
+    await session.save();
 
     res.json({ questions });
   } catch (err) {
