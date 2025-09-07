@@ -23,18 +23,37 @@ mongoose.connect(process.env.MONGODB_URI)
 
 // Registration endpoint
 app.post('/api/register', async (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
-
+  const { firstName, lastName, email, username, password, confirmPassword } = req.body;
+  if (!firstName || !lastName || !email || !username || !password || !confirmPassword) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+  // Email format validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: 'Invalid email format' });
+  }
+  // Password strength validation
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+  if (!passwordRegex.test(password)) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters and include uppercase, lowercase, number, and special character.' });
+  }
+  if (password !== confirmPassword) {
+    return res.status(400).json({ error: 'Passwords do not match' });
+  }
   try {
-    const existingUser = await User.findOne({ username });
+    const existingUser = await User.findOne({ $or: [{ username }, { email }] });
     if (existingUser) {
-      return res.status(409).json({ error: 'Username already exists' });
+      if (existingUser.username === username) {
+        return res.status(409).json({ error: 'Username already exists' });
+      }
+      if (existingUser.email === email) {
+        return res.status(409).json({ error: 'Email already registered' });
+      }
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ username, password: hashedPassword });
+    const newUser = new User({ firstName, lastName, email, username, password: hashedPassword });
     await newUser.save();
-    res.status(201).json({ user: { id: newUser._id, username: newUser.username, createdAt: newUser.createdAt } });
+    res.status(201).json({ user: { id: newUser._id, username: newUser.username, email: newUser.email, createdAt: newUser.createdAt } });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
@@ -43,18 +62,18 @@ app.post('/api/register', async (req, res) => {
 
 // Login endpoint
 app.post('/api/login', async (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
+  const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
 
   try {
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ email });
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ error: 'Invalid credentials' });
 
-    const token = jwt.sign({ userId: user._id, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
-    res.json({ token });
+    const token = jwt.sign({ userId: user._id, email: user.email, username: user.username }, JWT_SECRET, { expiresIn: '1h' });
+    res.json({ token, email: user.email, username: user.username });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
