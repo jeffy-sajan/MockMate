@@ -14,11 +14,11 @@ const Navbar = () => {
 
   const navLinkClass = ({ isActive }) =>
     `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-      isActive ? "text-white" : "text-white/80 hover:text-white"
+      isActive ? "text-black" : "text-gray-800 hover:text-black"
     }`;
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 text-white backdrop-blur">
+    <header className="sticky top-0 z-40 w-full glass-card border-b border-white/20 backdrop-blur-md text-black">
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-3">
@@ -29,12 +29,12 @@ const Navbar = () => {
 </svg>
 </span>
               </span>
-              <span className="text-lg font-bold tracking-wide">MockMate</span>
+              <span className="text-lg font-bold tracking-wide gradient-text">MockMate</span>
             </Link>
           </div>
 
-          <div className="hidden md:flex items-center gap-1">
-            <NavLink to="/dashboard" className={navLinkClass}>Dashboard</NavLink>
+          <div className="hidden md:flex items-center gap-4">
+            <NavLink to="/dashboard" className={navLinkClass} >Dashboard</NavLink>
             <NavLink to="/generate" className={navLinkClass}>Practice</NavLink>
             <NavLink to="/mock-interview" className={navLinkClass}>Mock Interview</NavLink>
           </div>
@@ -42,19 +42,19 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-3">
             {!token ? (
               <>
-                <Link to="/login" className="px-3 py-2 text-sm font-medium text-white/90 hover:text-white">Login</Link>
+                <Link to="/login" className="px-3 py-2 text-sm font-medium text-gray-800 hover:text-black">Login</Link>
                 <Link to="/register" className="btn-primary">Get Started</Link>
               </>
             ) : (
               <>
-                <span className="hidden lg:inline text-sm text-white/90">Hello, {user?.username}!</span>
-                <button onClick={handleLogout} className="px-3 py-2 text-sm font-medium text-white/90 hover:text-white">Logout</button>
+                <span className="hidden lg:inline text-sm text-gray-800">Hello, {user?.username}!</span>
+                <button onClick={handleLogout} className="px-3 py-2 text-sm font-medium text-gray-800 hover:text-black">Logout</button>
               </>
             )}
           </div>
 
           <button
-            className="md:hidden inline-flex items-center justify-center rounded-md p-2 text-white/90 hover:bg-white/10"
+            className="md:hidden inline-flex items-center justify-center rounded-md p-2 text-gray-800 hover:bg-white/20"
             aria-label="Toggle navigation menu"
             onClick={() => setIsOpen(!isOpen)}
           >

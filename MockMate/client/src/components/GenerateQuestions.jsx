@@ -131,72 +131,81 @@ const GenerateQuestions = () => {
   };
 
   return (
-    <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-      <div className="grid lg:grid-cols-2 gap-10 items-start">
-        <div className="card">
-          <h2 className="text-2xl font-bold mb-4">Generate Interview Q&A</h2>
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <input
-              type="text"
-              placeholder="Job Role (e.g., Frontend Developer)"
-              className="input"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              required
-            />
-            <textarea
-              placeholder="Paste the full job description here..."
-              className="input min-h-[140px]"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-            />
-            <button
-              type="submit"
-              className="btn-primary w-full"
-              disabled={loading}
-            >
-              {loading ? "Generating..." : "Generate Q&A"}
-            </button>
-          </form>
-        </div>
-        {error && <div className="text-red-600 mt-4 text-center">{error}</div>}
-        {pinError && <div className="text-red-600 mt-4 text-center">{pinError}</div>}
-        {questions && Array.isArray(questions) && questions.length > 0 && (
-          <div className="card space-y-4">
-            <h3 className="text-xl font-bold mb-2">Results</h3>
-            {questions
-              .sort((a, b) => {
-                const aPinned = isQuestionPinned(a.question);
-                const bPinned = isQuestionPinned(b.question);
-                if (aPinned && !bPinned) return -1; // a goes first
-                if (!aPinned && bPinned) return 1;  // b goes first
-                return 0; // keep original order
-              })
-              .map((q, idx) => (
-                <QuestionCard
-                  key={idx}
-                  question={q.question}
-                  answer={q.answer}
-                  isPinned={isQuestionPinned(q.question)}
-                  onPin={handlePin}
-                  onUnpin={handleUnpin}
-                />
-              ))}
-            
-            {/* Start Mock Test Button */}
-            <div className="pt-2 text-center">
-              <button
-                onClick={startMockTest}
-                className="btn-primary"
-              >
-                🎤 Start Mock Test
-              </button>
-            </div>
-          </div>
-        )}
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-bold">Practice Interview Questions</h1>
+        <p className="muted max-w-2xl mx-auto">Generate personalized interview questions based on your target role and get insights.</p>
       </div>
-    </section>
+
+      <div className="grid lg:grid-cols-3 gap-8">
+        {/* Generator card */}
+        <div className="lg:col-span-1 space-y-6">
+          <div className="card">
+            <h2 className="text-lg font-semibold mb-1">Generate Questions</h2>
+            <p className="muted mb-4">Tell us about the role you're preparing for</p>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm mb-1">Job Role</label>
+                <input type="text" className="input" placeholder="e.g., Software Engineer" value={role} onChange={(e)=>setRole(e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-sm mb-1">Popular Roles</label>
+                <div className="flex flex-wrap gap-2">
+                  {["Software Engineer","Product Manager","Data Scientist","UX Designer"].map(r => (
+                    <button type="button" key={r} className="badge badge-outline" onClick={()=>setRole(r)}>{r}</button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm mb-1">Job Description</label>
+                <textarea className="input min-h-[120px]" placeholder="Paste the job description here for more targeted questions..." value={description} onChange={(e)=>setDescription(e.target.value)} />
+              </div>
+              <button type="submit" disabled={!role || loading} className="btn-primary w-full">
+                {loading ? "Generating..." : "Generate Questions"}
+              </button>
+            </form>
+          </div>
+
+
+          {error && <div className="text-red-600 text-center">{error}</div>}
+          {pinError && <div className="text-red-600 text-center">{pinError}</div>}
+        </div>
+
+        {/* Results */}
+        <div className="lg:col-span-2 space-y-6">
+          {(!questions || questions.length === 0) ? (
+            <div className="card text-center py-12">
+              <div className="w-16 h-16 rounded-full muted-bg flex items-center justify-center mx-auto mb-4">🎯</div>
+              <h3 className="text-lg font-semibold mb-1">Ready to Practice?</h3>
+              <p className="muted max-w-md mx-auto">Enter your target job role and optionally add a job description to generate personalized interview questions.</p>
+              <div className="flex flex-wrap gap-2 justify-center mt-4">
+                {["Software Engineer","Product Manager","Data Scientist","UX Designer","Marketing Manager","Sales Representative","Business Analyst","DevOps Engineer"].map(r => (
+                  <button type="button" key={r} className="badge badge-outline" onClick={()=>setRole(r)}>{r}</button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold">Questions for {role}</h2>
+                <span className="badge badge-secondary">{questions.length} questions generated</span>
+              </div>
+              {questions
+                .sort((a,b)=>{ const ap=isQuestionPinned(a.question); const bp=isQuestionPinned(b.question); if(ap&&!bp) return -1; if(!ap&&bp) return 1; return 0; })
+                .map((q,idx)=> (
+                  <QuestionCard key={idx} question={q.question} answer={q.answer} isPinned={isQuestionPinned(q.question)} onPin={handlePin} onUnpin={handleUnpin} />
+                ))}
+              <div className="card text-center">
+                <h3 className="text-lg font-semibold mb-2">Ready for the next level?</h3>
+                <p className="muted mb-4">Try a full mock interview with voice interaction and real-time feedback</p>
+                <button className="btn-primary" onClick={startMockTest}>Start Mock Interview</button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 
