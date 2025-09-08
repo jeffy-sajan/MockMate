@@ -83,4 +83,20 @@
   .badge-secondary { background: hsl(var(--secondary)); color: hsl(var(--secondary-foreground)); }
   .muted { color: hsl(var(--muted-foreground)); }
   .muted-bg { background-color: hsl(var(--muted)); }
+  
+  /* Custom animations */
+  @keyframes pulse-once {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+  }
+  
+  @keyframes slideInFromRight {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(0); }
+  }
+  
+  .animate-pulse-once {
+    animation: pulse-once 0.6s ease-in-out;
+  }
 }

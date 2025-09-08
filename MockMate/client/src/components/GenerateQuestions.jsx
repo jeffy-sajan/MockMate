@@ -13,6 +13,7 @@ const GenerateQuestions = () => {
   const [error, setError] = useState("");
   const [pinned, setPinned] = useState([]);
   const [pinError, setPinError] = useState("");
+  const [pinnedOrder, setPinnedOrder] = useState([]); // Track order of pinned questions
 
   // Fetch pinned questions on mount
   useEffect(() => {
@@ -77,6 +78,8 @@ const GenerateQuestions = () => {
         const data = await res.json();
         console.log("Pin success:", data);
         setPinned((prev) => [...prev, { question, answer }]);
+        // Add to pinned order with timestamp for proper ordering
+        setPinnedOrder((prev) => [question, ...prev]);
       } else {
         const data = await res.json();
         console.log("Pin error:", data);
@@ -106,6 +109,8 @@ const GenerateQuestions = () => {
         const data = await res.json();
         console.log("Unpin success:", data);
         setPinned((prev) => prev.filter((q) => q.question !== question));
+        // Remove from pinned order
+        setPinnedOrder((prev) => prev.filter((q) => q !== question));
       } else {
         const data = await res.json();
         console.log("Unpin error:", data);
@@ -119,6 +124,21 @@ const GenerateQuestions = () => {
 
   const isQuestionPinned = (question) =>
     pinned.some((q) => q.question === question);
+
+  // Get the proper order of questions with pinned ones at top
+  const getOrderedQuestions = () => {
+    const pinnedQuestions = questions.filter(q => isQuestionPinned(q.question));
+    const unpinnedQuestions = questions.filter(q => !isQuestionPinned(q.question));
+    
+    // Sort pinned questions by their pin order (most recent first)
+    const sortedPinned = pinnedQuestions.sort((a, b) => {
+      const aIndex = pinnedOrder.indexOf(a.question);
+      const bIndex = pinnedOrder.indexOf(b.question);
+      return aIndex - bIndex;
+    });
+    
+    return [...sortedPinned, ...unpinnedQuestions];
+  };
 
   const startMockTest = () => {
     navigate('/mock-interview', { 
@@ -191,11 +211,31 @@ const GenerateQuestions = () => {
                 <h2 className="text-xl font-semibold">Questions for {role}</h2>
                 <span className="badge badge-secondary">{questions.length} questions generated</span>
               </div>
-              {questions
-                .sort((a,b)=>{ const ap=isQuestionPinned(a.question); const bp=isQuestionPinned(b.question); if(ap&&!bp) return -1; if(!ap&&bp) return 1; return 0; })
-                .map((q,idx)=> (
-                  <QuestionCard key={idx} question={q.question} answer={q.answer} isPinned={isQuestionPinned(q.question)} onPin={handlePin} onUnpin={handleUnpin} />
+              <div className="space-y-4">
+                {getOrderedQuestions().map((q, idx) => (
+                  <div 
+                    key={`${q.question}-${idx}`}
+                    className={`transition-all duration-700 ease-in-out transform ${
+                      isQuestionPinned(q.question) 
+                        ? 'animate-pulse-once border-l-4 border-yellow-400 bg-yellow-50' 
+                        : ''
+                    }`}
+                    style={{
+                      transform: 'translateY(0)',
+                      opacity: 1,
+                      animationDelay: `${idx * 100}ms`
+                    }}
+                  >
+                    <QuestionCard 
+                      question={q.question} 
+                      answer={q.answer} 
+                      isPinned={isQuestionPinned(q.question)} 
+                      onPin={handlePin} 
+                      onUnpin={handleUnpin} 
+                    />
+                  </div>
                 ))}
+              </div>
               <div className="card text-center">
                 <h3 className="text-lg font-semibold mb-2">Ready for the next level?</h3>
                 <p className="muted mb-4">Try a full mock interview with voice interaction and real-time feedback</p>
