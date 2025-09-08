@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 import Register from "./components/Register";
 import Login from "./components/Login";
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
@@ -11,13 +12,14 @@ import MockInterview from "./components/MockInterview";
 import SessionDetails from "./components/SessionDetails";
 import AdminLogin from "./components/AdminLogin";
 import AdminDashboard from "./components/AdminDashboard";
+import Hero from "./components/Hero";
 
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Navbar />
-        <div className="container mx-auto p-4">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
           <Routes>
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
@@ -53,11 +55,12 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/" element={<div>Welcome to MockMate!</div>} />
+            <Route path="/" element={<Hero />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
           </Routes>
         </div>
+        <Footer />
       </Router>
     </AuthProvider>
   );

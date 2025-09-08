@@ -38,33 +38,33 @@ const SessionDetails = () => {
   if (!session) return <div className="text-gray-600">Session not found</div>;
 
   return (
-    <div className="space-y-6">
+    <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Session Details</h1>
-        <Link to="/analytics" className="text-blue-600 hover:underline">Back to Dashboard</Link>
+        <h1 className="text-3xl font-bold">Session Details</h1>
+        <Link to="/analytics" className="btn-outline">Back to Dashboard</Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white shadow rounded p-4">
+        <div className="card p-4">
           <div className="text-sm text-gray-500">Date</div>
           <div className="text-lg">{new Date(session.createdAt).toLocaleString()}</div>
         </div>
-        <div className="bg-white shadow rounded p-4">
+        <div className="card p-4">
           <div className="text-sm text-gray-500">Role</div>
           <div className="text-lg">{session.role || '-'}</div>
         </div>
-        <div className="bg-white shadow rounded p-4">
+        <div className="card p-4">
           <div className="text-sm text-gray-500">Avg Time (s)</div>
           <div className="text-lg">{number(session.metrics?.avgAnswerTimeSec)}</div>
         </div>
       </div>
 
-      <div className="bg-white shadow rounded p-4">
+      <div className="card p-4">
         <div className="font-semibold mb-2">AI Feedback</div>
         <div className="prose whitespace-pre-wrap">{session.feedback || '-'}</div>
       </div>
 
-      <div className="bg-white shadow rounded p-4">
+      <div className="card p-4">
         <div className="font-semibold mb-2">Answers</div>
         <div className="overflow-x-auto">
           <table className="min-w-full">
@@ -91,7 +91,7 @@ const SessionDetails = () => {
           </table>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 

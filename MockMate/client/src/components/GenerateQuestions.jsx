@@ -131,40 +131,40 @@ const GenerateQuestions = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 to-blue-100">
-      <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-8">
-        <h2 className="text-3xl font-bold text-center text-blue-700 mb-6">
-          Generate Interview Q&A
-        </h2>
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <input
-            type="text"
-            placeholder="Job Role (e.g., Frontend Developer)"
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            required
-          />
-          <textarea
-            placeholder="Paste the full job description here..."
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 min-h-[120px]"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-          />
-          <button
-            type="submit"
-            className="w-full py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
-            disabled={loading}
-          >
-            {loading ? "Generating..." : "Generate Q&A"}
-          </button>
-        </form>
+    <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+      <div className="grid lg:grid-cols-2 gap-10 items-start">
+        <div className="card">
+          <h2 className="text-2xl font-bold mb-4">Generate Interview Q&A</h2>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <input
+              type="text"
+              placeholder="Job Role (e.g., Frontend Developer)"
+              className="input"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              required
+            />
+            <textarea
+              placeholder="Paste the full job description here..."
+              className="input min-h-[140px]"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              required
+            />
+            <button
+              type="submit"
+              className="btn-primary w-full"
+              disabled={loading}
+            >
+              {loading ? "Generating..." : "Generate Q&A"}
+            </button>
+          </form>
+        </div>
         {error && <div className="text-red-600 mt-4 text-center">{error}</div>}
         {pinError && <div className="text-red-600 mt-4 text-center">{pinError}</div>}
         {questions && Array.isArray(questions) && questions.length > 0 && (
-          <div className="mt-8 space-y-4">
-            <h3 className="text-xl font-bold text-blue-700 mb-2">Results:</h3>
+          <div className="card space-y-4">
+            <h3 className="text-xl font-bold mb-2">Results</h3>
             {questions
               .sort((a, b) => {
                 const aPinned = isQuestionPinned(a.question);
@@ -185,10 +185,10 @@ const GenerateQuestions = () => {
               ))}
             
             {/* Start Mock Test Button */}
-            <div className="mt-6 text-center">
+            <div className="pt-2 text-center">
               <button
                 onClick={startMockTest}
-                className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition text-lg"
+                className="btn-primary"
               >
                 🎤 Start Mock Test
               </button>
@@ -196,7 +196,7 @@ const GenerateQuestions = () => {
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 };
 

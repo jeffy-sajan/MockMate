@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { apiPost } from "../lib/api";
 
 const Register = () => {
   const [firstName, setFirstName] = useState("");
@@ -16,7 +17,6 @@ const Register = () => {
     e.preventDefault();
     setError("");
     setSuccess("");
-    // Password strength validation
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
     if (!passwordRegex.test(password)) {
       setError("Password must be at least 8 characters and include uppercase, lowercase, number, and special character.");
@@ -27,13 +27,8 @@ const Register = () => {
       return;
     }
     try {
-      const res = await fetch("http://localhost:5000/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ firstName, lastName, email, username, password, confirmPassword }),
-      });
-      const data = await res.json();
-      if (res.ok) {
+      const { ok, data } = await apiPost("/api/register", { firstName, lastName, email, username, password, confirmPassword });
+      if (ok) {
         setSuccess("Registration successful! Please login.");
         setTimeout(() => navigate("/login"), 1500);
       } else {
@@ -45,69 +40,59 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-300">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
-        <h2 className="text-3xl font-bold text-center text-blue-700 mb-6">Register</h2>
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <input
-            type="text"
-            placeholder="First Name"
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            required
-          />
-          <input
-            type="text"
-            placeholder="Last Name"
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            required
-          />
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <input
-            type="text"
-            placeholder="Username"
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <input
-            type="password"
-            placeholder="Confirm Password"
-            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
-          <button
-            type="submit"
-            className="w-full py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
-          >
-            Register
-          </button>
-        </form>
-        {error && <div className="text-red-600 mt-4 text-center">{error}</div>}
-        {success && <div className="text-green-600 mt-4 text-center">{success}</div>}
+    <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+      <div className="grid lg:grid-cols-2 gap-10 items-center">
+        <div className="hidden lg:block">
+          <h1 className="text-4xl font-bold leading-tight">Create your <span className="gradient-text">MockMate</span> account</h1>
+          <p className="mt-3 text-gray-600 max-w-prose">Start your interview journey with curated practice and actionable feedback.</p>
+        </div>
+        <div className="card">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-purple-100 mb-3">
+              <span className="text-lg font-bold text-purple-700">MM</span>
+            </div>
+            <h2 className="text-2xl font-bold">Create account</h2>
+          </div>
+
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">First name</label>
+              <input type="text" className="input" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Last name</label>
+              <input type="text" className="input" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input type="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+              <input type="text" className="input" value={username} onChange={(e) => setUsername(e.target.value)} required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <input type="password" className="input" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm password</label>
+              <input type="password" className="input" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+            </div>
+            <div className="sm:col-span-2">
+              <button type="submit" className="btn-primary w-full">Create account</button>
+            </div>
+          </form>
+
+          {error && <div className="text-red-600 mt-4 text-center text-sm">{error}</div>}
+          {success && <div className="text-green-600 mt-4 text-center text-sm">{success}</div>}
+
+          <p className="mt-6 text-center text-sm text-gray-600">
+            Already have an account? <Link to="/login" className="text-purple-700 hover:underline">Sign in</Link>
+          </p>
+        </div>
       </div>
-    </div>
+    </section>
   );
 };
 

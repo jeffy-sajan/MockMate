@@ -179,8 +179,8 @@ const MockInterview = () => {
 
   if (currentStep === "mic-test") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-100 to-blue-100">
-        <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-8">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="card max-w-2xl mx-auto">
           <h2 className="text-3xl font-bold text-center text-green-700 mb-6">
             🎤 Mock Interview Setup
           </h2>
@@ -222,7 +222,7 @@ const MockInterview = () => {
             )}
           </div>
         </div>
-      </div>
+      </section>
     );
   }
 
@@ -230,8 +230,8 @@ const MockInterview = () => {
     const currentQuestion = questions[currentQuestionIndex];
     
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100">
-        <div className="w-full max-w-4xl bg-white rounded-xl shadow-lg p-8">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="card max-w-4xl mx-auto">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-blue-700 mb-2">
               Mock Interview - Question {currentQuestionIndex + 1} of {questions.length}
@@ -295,14 +295,14 @@ const MockInterview = () => {
             <div className="text-red-600 mt-4 text-center">{error}</div>
           )}
         </div>
-      </div>
+      </section>
     );
   }
 
   if (currentStep === "summary") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 to-green-100">
-        <div className="w-full max-w-4xl bg-white rounded-xl shadow-lg p-8">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="card max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold text-center text-purple-700 mb-6">
             🎯 Interview Summary
           </h2>
@@ -369,7 +369,7 @@ const MockInterview = () => {
             <div className="text-red-600 mt-4 text-center">{error}</div>
           )}
         </div>
-      </div>
+      </section>
     );
   }
 

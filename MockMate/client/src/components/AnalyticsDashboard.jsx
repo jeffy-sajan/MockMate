@@ -131,19 +131,19 @@ const AnalyticsDashboard = () => {
   const renderOverview = () => (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white shadow rounded p-4">
+        <div className="card p-4">
           <div className="text-sm text-gray-500">Total Sessions (30d)</div>
           <div className="text-2xl font-semibold">{summary?.totalSessions ?? 0}</div>
         </div>
-        <div className="bg-white shadow rounded p-4">
+        <div className="card p-4">
           <div className="text-sm text-gray-500">Total Questions</div>
           <div className="text-2xl font-semibold">{summary?.totalQuestions ?? 0}</div>
         </div>
-        <div className="bg-white shadow rounded p-4">
+        <div className="card p-4">
           <div className="text-sm text-gray-500">Avg Answer Time (s)</div>
           <div className="text-2xl font-semibold">{number(summary?.avgAnswerTimeSec)}</div>
         </div>
-        <div className="bg-white shadow rounded p-4">
+        <div className="card p-4">
           <div className="text-sm text-gray-500">Avg Confidence</div>
           <div className="text-2xl font-semibold">{number(summary?.overallConfidence)}</div>
         </div>
@@ -151,7 +151,7 @@ const AnalyticsDashboard = () => {
 
       {/* Performance Trends Chart */}
       {performanceTrendData.length > 0 && (
-        <div className="bg-white shadow rounded p-6">
+        <div className="card p-6">
           <h3 className="text-lg font-semibold mb-4">Performance Trends Over Time</h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={performanceTrendData}>
@@ -171,7 +171,7 @@ const AnalyticsDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Topic Distribution Pie Chart */}
         {topicDistribution.length > 0 && (
-          <div className="bg-white shadow rounded p-6">
+          <div className="card p-6">
             <h3 className="text-lg font-semibold mb-4">Topic Distribution</h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -197,7 +197,7 @@ const AnalyticsDashboard = () => {
 
         {/* Confidence Distribution Bar Chart */}
         {confidenceData.some(d => d.count > 0) && (
-          <div className="bg-white shadow rounded p-6">
+          <div className="card p-6">
             <h3 className="text-lg font-semibold mb-4">Confidence Level Distribution</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={confidenceData}>
@@ -212,7 +212,7 @@ const AnalyticsDashboard = () => {
         )}
       </div>
 
-      <div className="bg-white shadow rounded p-4">
+      <div className="card p-4">
         <div className="font-semibold mb-2">Sessions by Day (30d)</div>
         <div className="overflow-x-auto">
           <table className="min-w-full">
@@ -238,7 +238,7 @@ const AnalyticsDashboard = () => {
         </div>
       </div>
 
-      <div className="bg-white shadow rounded p-4">
+      <div className="card p-4">
         <div className="font-semibold mb-2">Interview History</div>
         <div className="overflow-x-auto">
           <table className="min-w-full">
@@ -275,8 +275,8 @@ const AnalyticsDashboard = () => {
   );
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
+    <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
 
       {/* Tab Navigation */}
       <div className="border-b border-gray-200">
@@ -299,7 +299,7 @@ const AnalyticsDashboard = () => {
 
       {/* Tab Content */}
       {renderTabContent()}
-    </div>
+    </section>
   );
 };
 
