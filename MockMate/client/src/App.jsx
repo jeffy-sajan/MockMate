@@ -9,6 +9,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import GenerateQuestions from "./components/GenerateQuestions";
 import MockInterview from "./components/MockInterview";
 import SessionDetails from "./components/SessionDetails";
+import AdminLogin from "./components/AdminLogin";
+import AdminDashboard from "./components/AdminDashboard";
 
 function App() {
   return (
@@ -52,6 +54,8 @@ function App() {
               }
             />
             <Route path="/" element={<div>Welcome to MockMate!</div>} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
           </Routes>
         </div>
       </Router>

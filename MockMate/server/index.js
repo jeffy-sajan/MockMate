@@ -1,3 +1,4 @@
+
 const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
@@ -529,4 +530,65 @@ app.delete('/api/goals/:goalId', authenticateToken, async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+// ...existing code...
+
+// Admin authentication middleware
+function authenticateAdmin(req, res, next) {
+  authenticateToken(req, res, async () => {
+    try {
+      const user = await User.findById(req.user.userId);
+      if (!user || !user.isAdmin) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+      req.admin = user;
+      next();
+    } catch (err) {
+      res.status(500).json({ error: 'Server error' });
+    }
+  });
+}
+
+// Admin login endpoint
+app.post('/api/admin/login', async (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Username and password are required' });
+  }
+  try {
+    const user = await User.findOne({ username });
+    if (!user || !user.isAdmin) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    const token = jwt.sign({ userId: user._id, username: user.username, isAdmin: true }, JWT_SECRET, { expiresIn: '2h' });
+    res.json({ token });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Admin: Get all users
+app.get('/api/admin/users', authenticateAdmin, async (req, res) => {
+  try {
+    const users = await User.find({}, '-password'); // Exclude password
+    res.json({ users });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+// Admin: Delete user
+app.delete('/api/admin/users/:id', authenticateAdmin, async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({ message: 'User deleted' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete user' });
+  }
 });
