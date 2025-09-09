@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Register from "./components/Register";
 import Login from "./components/Login";
+import Dashboard from "./components/Dashboard";
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import GenerateQuestions from "./components/GenerateQuestions";
@@ -41,6 +42,14 @@ function App() {
             />
             <Route
               path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analytics"
               element={
                 <ProtectedRoute>
                   <AnalyticsDashboard />

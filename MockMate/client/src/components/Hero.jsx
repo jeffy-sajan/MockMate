@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Link } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 
 const Stat = ({ number, label }) => (
   <div className="text-center">
@@ -9,6 +10,8 @@ const Stat = ({ number, label }) => (
 );
 
 const Hero = () => {
+  const { user } = useContext(AuthContext);
+  
   const stats = [
     { number: "10K+", label: "Questions Generated" },
     { number: "5K+", label: "Users Helped" },
@@ -32,12 +35,14 @@ const Hero = () => {
                 </p>
               </div>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/register" className="inline-flex items-center rounded-md bg-purple-600 text-white px-5 py-3 text-sm font-semibold shadow-sm hover:bg-purple-700">
+                <Link to="/generate" className="inline-flex items-center rounded-md bg-purple-600 text-white px-5 py-3 text-sm font-semibold shadow-sm hover:bg-purple-700">
                   Start Practicing Now
                 </Link>
-                <Link to="/login" className="inline-flex items-center rounded-md border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50">
-                  Sign in
-                </Link>
+                {!user && (
+                  <Link to="/login" className="inline-flex items-center rounded-md border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                    Sign in
+                  </Link>
+                )}
               </div>
             </div>
             <div className="relative">

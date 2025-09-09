@@ -144,8 +144,8 @@ const MockInterview = () => {
             }, 100);
           }
         } else {
-          setError('Speech recognition error: ' + event.error);
-          setIsRecording(false);
+        setError('Speech recognition error: ' + event.error);
+        setIsRecording(false);
         }
       };
       
@@ -538,7 +538,7 @@ const MockInterview = () => {
                     Read this sentence aloud to test voice recognition:
                   </p>
                   <div className="bg-gray-100 p-4 rounded-lg font-medium text-center">
-                    "The quick brown fox jumps over the lazy dog"
+                  "The quick brown fox jumps over the lazy dog"
                   </div>
                   
                   {!isTestingMic && !micTestPassed && (
@@ -556,13 +556,13 @@ const MockInterview = () => {
                         <div className="inline-block animate-pulse text-purple-600 font-semibold">
                           🎤 Listening... Speak now!
                         </div>
-                      </div>
-                      <button
+                </div>
+                <button
                         onClick={stopMicTest}
                         className="w-full px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition"
-                      >
+                >
                         ⏹️ Stop Test
-                      </button>
+                </button>
                     </div>
                   )}
                   
@@ -669,15 +669,15 @@ const MockInterview = () => {
             </div>
 
             {/* Control Buttons */}
-            <div className="flex justify-center space-x-4">
-              {!isRecording ? (
-                <button
-                  onClick={startRecording}
-                  className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
-                >
-                  🎤 Start Answering
-                </button>
-              ) : (
+          <div className="flex justify-center space-x-4">
+            {!isRecording ? (
+              <button
+                onClick={startRecording}
+                className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
+              >
+                🎤 Start Answering
+              </button>
+            ) : (
                 <div className="flex space-x-2">
                   {!isPaused ? (
                     <button
@@ -694,23 +694,23 @@ const MockInterview = () => {
                       ▶️ Resume
                     </button>
                   )}
-                  <button
-                    onClick={stopRecording}
+              <button
+                onClick={stopRecording}
                     className="px-4 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition"
-                  >
+              >
                     ⏹️ Stop
-                  </button>
+              </button>
                 </div>
-              )}
-              
+            )}
+            
               {(transcript.trim() || accumulatedTranscriptRef.current.trim()) && (
-                <button
-                  onClick={nextQuestion}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
-                >
-                  {currentQuestionIndex < questions.length - 1 ? "Next Question" : "Finish Interview"}
-                </button>
-              )}
+              <button
+                onClick={nextQuestion}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
+              >
+                {currentQuestionIndex < questions.length - 1 ? "Next Question" : "Finish Interview"}
+              </button>
+            )}
             </div>
 
             {/* Help Text */}
@@ -735,8 +735,8 @@ const MockInterview = () => {
           {/* Header */}
           <div className="text-center">
             <h2 className="text-4xl font-bold gradient-text mb-4">
-              🎯 Interview Summary
-            </h2>
+            🎯 Interview Summary
+          </h2>
             <p className="text-lg muted max-w-2xl mx-auto">
               Review your responses and get AI-powered feedback to improve your interview skills.
             </p>
@@ -766,13 +766,13 @@ const MockInterview = () => {
                           {response.answer}
                         </div>
                       </div>
-                    </div>
+                  </div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-
+          
           {/* AI Feedback Section */}
           {!feedback ? (
             <div className="card text-center">
@@ -788,9 +788,9 @@ const MockInterview = () => {
                     Get personalized insights and suggestions to improve your interview performance.
                   </p>
                 </div>
-                <button
-                  onClick={getFeedback}
-                  disabled={loading}
+              <button
+                onClick={getFeedback}
+                disabled={loading}
                   className="btn-primary text-lg px-8 py-4 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? (
@@ -801,27 +801,211 @@ const MockInterview = () => {
                   ) : (
                     "🎯 Get AI Feedback"
                   )}
-                </button>
+              </button>
               </div>
             </div>
           ) : (
-            <div className="card">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                  </svg>
+            <div className="space-y-8">
+              {/* Overall Score Card */}
+              <div className="card">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-semibold text-gray-900">AI Feedback</h3>
                 </div>
-                <h3 className="text-2xl font-semibold text-gray-900">AI Feedback</h3>
+
+                {/* Overall Performance Score */}
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-8 mb-6">
+                  <div className="text-center">
+                    <div className="relative inline-block">
+                      <div className={`w-32 h-32 rounded-full flex items-center justify-center text-4xl font-bold text-white ${
+                        feedback.overallScore >= 80 ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                        feedback.overallScore >= 60 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
+                        'bg-gradient-to-r from-red-500 to-red-600'
+                      }`}>
+                        {feedback.overallScore || 0}
+                      </div>
+                      <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center text-sm font-bold text-gray-600">
+                        /100
+                      </div>
+                    </div>
+                    <h4 className="text-2xl font-semibold text-gray-900 mt-4 mb-2">Overall Score</h4>
+                    <p className="text-lg text-gray-600 mb-4">{feedback.overallAssessment || "Performance assessment"}</p>
+                    
+                    {/* Performance Level */}
+                    <div className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${
+                      feedback.overallScore >= 80 ? 'bg-green-100 text-green-800' :
+                      feedback.overallScore >= 60 ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {feedback.overallScore >= 80 ? '🌟 Excellent' :
+                       feedback.overallScore >= 60 ? '👍 Good' : '📈 Needs Improvement'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Strengths and Improvements */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  {/* Strengths */}
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-6">
+                    <div className="flex items-center space-x-2 mb-4">
+                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <h4 className="text-lg font-semibold text-green-800">Strengths</h4>
+                    </div>
+                    <ul className="space-y-2">
+                      {(feedback.strengths || []).map((strength, index) => (
+                        <li key={index} className="flex items-start space-x-2 text-green-700">
+                          <span className="text-green-500 mt-1">•</span>
+                          <span>{strength}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Areas for Improvement */}
+                  <div className="bg-orange-50 border border-orange-200 rounded-xl p-6">
+                    <div className="flex items-center space-x-2 mb-4">
+                      <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <h4 className="text-lg font-semibold text-orange-800">Areas for Improvement</h4>
+                    </div>
+                    <ul className="space-y-2">
+                      {(feedback.improvements || []).map((improvement, index) => (
+                        <li key={index} className="flex items-start space-x-2 text-orange-700">
+                          <span className="text-orange-500 mt-1">•</span>
+                          <span>{improvement}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
               </div>
-              <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-6">
-                <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
-                  {feedback}
+
+              {/* Question-by-Question Analysis */}
+              <div className="card">
+                <h3 className="text-2xl font-semibold text-gray-900 mb-6">Question Analysis</h3>
+                <div className="space-y-6">
+                  {(feedback.questionAnalysis || []).map((analysis, index) => (
+                    <div key={index} className="bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-xl p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-gradient-primary text-white rounded-full flex items-center justify-center font-bold text-sm">
+                            {analysis.questionNumber}
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900 text-lg mb-2">{analysis.question}</h4>
+                            <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+                              <div className="text-sm font-medium text-gray-600 mb-2">Your Answer:</div>
+                              <div className="text-gray-800 leading-relaxed whitespace-pre-wrap">
+                                {analysis.answer}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex-shrink-0 ml-4">
+                          <div className={`w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold text-white ${
+                            analysis.score >= 80 ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                            analysis.score >= 60 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
+                            'bg-gradient-to-r from-red-500 to-red-600'
+                          }`}>
+                            {analysis.score}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Assessment */}
+                        <div className="bg-white border border-gray-200 rounded-lg p-4">
+                          <h5 className="font-semibold text-gray-800 mb-2">Assessment</h5>
+                          <p className="text-gray-700 text-sm leading-relaxed">{analysis.assessment}</p>
+                        </div>
+
+                        {/* Strengths */}
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                          <h5 className="font-semibold text-green-800 mb-2">Strengths</h5>
+                          <ul className="space-y-1">
+                            {(analysis.strengths || []).map((strength, idx) => (
+                              <li key={idx} className="text-green-700 text-sm flex items-start space-x-1">
+                                <span className="text-green-500 mt-1">•</span>
+                                <span>{strength}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        {/* Improvements */}
+                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 md:col-span-2">
+                          <h5 className="font-semibold text-orange-800 mb-2">Improvements</h5>
+                          <ul className="space-y-1">
+                            {(analysis.improvements || []).map((improvement, idx) => (
+                              <li key={idx} className="text-orange-700 text-sm flex items-start space-x-1">
+                                <span className="text-orange-500 mt-1">•</span>
+                                <span>{improvement}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Recommendations and Next Steps */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Recommendations */}
+                <div className="card">
+                  <div className="flex items-center space-x-2 mb-4">
+                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-900">Recommendations</h4>
+                  </div>
+                  <ul className="space-y-3">
+                    {(feedback.recommendations || []).map((recommendation, index) => (
+                      <li key={index} className="flex items-start space-x-3 text-gray-700">
+                        <span className="text-blue-500 mt-1">📋</span>
+                        <span>{recommendation}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Next Steps */}
+                <div className="card">
+                  <div className="flex items-center space-x-2 mb-4">
+                    <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                    <h4 className="text-lg font-semibold text-gray-900">Next Steps</h4>
+                  </div>
+                  <ul className="space-y-3">
+                    {(feedback.nextSteps || []).map((step, index) => (
+                      <li key={index} className="flex items-start space-x-3 text-gray-700">
+                        <span className="text-purple-500 mt-1">🎯</span>
+                        <span>{step}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </div>
           )}
-
+          
           {/* Action Buttons */}
           <div className="card">
             <div className="text-center mb-6">
@@ -830,8 +1014,8 @@ const MockInterview = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <button
-                onClick={resetInterview}
+            <button
+              onClick={resetInterview}
                 className="group p-6 bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-xl hover:shadow-lg transition-all duration-200 hover:border-gray-300"
               >
                 <div className="text-center space-y-3">
@@ -845,10 +1029,10 @@ const MockInterview = () => {
                     <p className="text-sm text-gray-600">Practice with the same questions again</p>
                   </div>
                 </div>
-              </button>
+            </button>
 
-              <button
-                onClick={() => navigate('/generate')}
+            <button
+              onClick={() => navigate('/generate')}
                 className="group p-6 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl hover:shadow-lg transition-all duration-200 hover:border-blue-300"
               >
                 <div className="text-center space-y-3">
@@ -862,11 +1046,11 @@ const MockInterview = () => {
                     <p className="text-sm text-gray-600">Create fresh questions for different roles</p>
                   </div>
                 </div>
-              </button>
+            </button>
 
-              {sessionId && (
-                <button
-                  onClick={() => navigate('/analytics')}
+            {sessionId && (
+              <button
+                onClick={() => navigate('/analytics')}
                   className="group p-6 bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-xl hover:shadow-lg transition-all duration-200 hover:border-purple-300"
                 >
                   <div className="text-center space-y-3">
@@ -880,8 +1064,8 @@ const MockInterview = () => {
                       <p className="text-sm text-gray-600">Track your progress and performance</p>
                     </div>
                   </div>
-                </button>
-              )}
+              </button>
+            )}
             </div>
           </div>
           
