@@ -114,7 +114,7 @@ const AnalyticsDashboard = () => {
   const tabs = [
     { id: "overview", label: "Overview", component: "overview" },
     { id: "skills", label: "Skill Analysis", component: "skills" },
-    { id: "goals", label: "Goals", component: "goals" },
+    // { id: "goals", label: "Goals", component: "goals" },
   ];
 
   const renderTabContent = () => {

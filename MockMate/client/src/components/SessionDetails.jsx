@@ -306,11 +306,187 @@ const SessionDetails = () => {
               </div>
               
               {session.feedback ? (
-                <div className="bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-xl p-6">
-                  <div className="prose max-w-none">
-                    <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
-                      {typeof session.feedback === 'string' ? session.feedback : JSON.stringify(session.feedback, null, 2)}
+                <div className="space-y-6">
+                  {/* Overall Score Card */}
+                  {session.feedback.overallScore && (
+                    <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xl font-semibold text-gray-900">Overall Performance Score</h3>
+                        <div className="flex items-center space-x-2">
+                          <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold ${
+                            session.feedback.overallScore >= 80 ? 'bg-green-100 text-green-600' :
+                            session.feedback.overallScore >= 60 ? 'bg-yellow-100 text-yellow-600' :
+                            'bg-red-100 text-red-600'
+                          }`}>
+                            {session.feedback.overallScore}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            <div className="font-medium">out of 100</div>
+                            <div className={`font-semibold ${
+                              session.feedback.overallScore >= 80 ? 'text-green-600' :
+                              session.feedback.overallScore >= 60 ? 'text-yellow-600' :
+                              'text-red-600'
+                            }`}>
+                              {session.feedback.overallScore >= 80 ? 'Excellent' :
+                               session.feedback.overallScore >= 60 ? 'Good' : 'Needs Improvement'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {session.feedback.overallAssessment && (
+                        <p className="text-gray-700 leading-relaxed">{session.feedback.overallAssessment}</p>
+                      )}
                     </div>
+                  )}
+
+                  {/* Strengths and Improvements */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {session.feedback.strengths && session.feedback.strengths.length > 0 && (
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6">
+                        <h3 className="text-lg font-semibold text-green-800 mb-4 flex items-center">
+                          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Strengths
+                        </h3>
+                        <ul className="space-y-2">
+                          {session.feedback.strengths.map((strength, index) => (
+                            <li key={index} className="flex items-start space-x-2 text-green-700">
+                              <span className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></span>
+                              <span>{strength}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {session.feedback.improvements && session.feedback.improvements.length > 0 && (
+                      <div className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-6">
+                        <h3 className="text-lg font-semibold text-orange-800 mb-4 flex items-center">
+                          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Areas for Improvement
+                        </h3>
+                        <ul className="space-y-2">
+                          {session.feedback.improvements.map((improvement, index) => (
+                            <li key={index} className="flex items-start space-x-2 text-orange-700">
+                              <span className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>
+                              <span>{improvement}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Question Analysis */}
+                  {session.feedback.questionAnalysis && session.feedback.questionAnalysis.length > 0 && (
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
+                      <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center">
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Question-by-Question Analysis
+                      </h3>
+                      <div className="space-y-4">
+                        {session.feedback.questionAnalysis.map((qa, index) => (
+                          <div key={index} className="bg-white border border-blue-100 rounded-lg p-4">
+                            <div className="flex items-start justify-between mb-3">
+                              <h4 className="font-medium text-gray-900">Question {qa.questionNumber}</h4>
+                              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                qa.score >= 80 ? 'bg-green-100 text-green-700' :
+                                qa.score >= 60 ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-red-100 text-red-700'
+                              }`}>
+                                {qa.score}/100
+                              </div>
+                            </div>
+                            <div className="space-y-3">
+                              <div>
+                                <p className="text-sm font-medium text-gray-700 mb-1">Question:</p>
+                                <p className="text-gray-600 text-sm">{qa.question}</p>
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-gray-700 mb-1">Your Answer:</p>
+                                <p className="text-gray-600 text-sm">{qa.answer}</p>
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-gray-700 mb-1">Assessment:</p>
+                                <p className="text-gray-600 text-sm">{qa.assessment}</p>
+                              </div>
+                              {qa.strengths && qa.strengths.length > 0 && (
+                                <div>
+                                  <p className="text-sm font-medium text-green-700 mb-1">Strengths:</p>
+                                  <ul className="text-sm text-green-600 space-y-1">
+                                    {qa.strengths.map((strength, sIndex) => (
+                                      <li key={sIndex} className="flex items-start space-x-1">
+                                        <span className="w-1 h-1 bg-green-500 rounded-full mt-2 flex-shrink-0"></span>
+                                        <span>{strength}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              {qa.improvements && qa.improvements.length > 0 && (
+                                <div>
+                                  <p className="text-sm font-medium text-orange-700 mb-1">Improvements:</p>
+                                  <ul className="text-sm text-orange-600 space-y-1">
+                                    {qa.improvements.map((improvement, iIndex) => (
+                                      <li key={iIndex} className="flex items-start space-x-1">
+                                        <span className="w-1 h-1 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>
+                                        <span>{improvement}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Recommendations and Next Steps */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {session.feedback.recommendations && session.feedback.recommendations.length > 0 && (
+                      <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-xl p-6">
+                        <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center">
+                          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                          </svg>
+                          Recommendations
+                        </h3>
+                        <ul className="space-y-2">
+                          {session.feedback.recommendations.map((recommendation, index) => (
+                            <li key={index} className="flex items-start space-x-2 text-blue-700">
+                              <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                              <span>{recommendation}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {session.feedback.nextSteps && session.feedback.nextSteps.length > 0 && (
+                      <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-6">
+                        <h3 className="text-lg font-semibold text-purple-800 mb-4 flex items-center">
+                          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                          </svg>
+                          Next Steps
+                        </h3>
+                        <ul className="space-y-2">
+                          {session.feedback.nextSteps.map((step, index) => (
+                            <li key={index} className="flex items-start space-x-2 text-purple-700">
+                              <span className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
+                              <span>{step}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (

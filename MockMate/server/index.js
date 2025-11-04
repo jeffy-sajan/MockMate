@@ -96,9 +96,9 @@ app.post('/api/questions', authenticateToken, async (req, res) => {
   }
 
   try {
-    const prompt = `Generate 5 interview questions and answers for the role of ${role} with the following job description: ${description}. Format the response as a JSON array of objects with 'question' and 'answer' fields. Example format: [{"question": "What is React?", "answer": "React is a JavaScript library..."}]`;
+    const prompt = `Generate 5 frequently asked interview questions and short concise interview level answers (the answer should be like how an interviewer want that question to be asnswered) for the role of ${role} with the following job description: ${description}. Format the response as a JSON array of objects with 'question' and 'answer' fields. Example format: [{"question": "What is React?", "answer": "React is a JavaScript library..."}]`;
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
@@ -119,19 +119,24 @@ app.post('/api/questions', authenticateToken, async (req, res) => {
       return res.json({ questions: text });
     }
 
-    // Save the generated Q&A as a new InterviewSession for the user
+    // Create a session for Q&A generation (incomplete session)
     const userId = req.user.userId;
-    const answers = questions.map(q => ({ question: q.question, answer: q.answer }));
     const session = new InterviewSession({
       userId,
       role,
       description,
-      answers,
-      createdAt: new Date()
+      answers: [], // Empty answers initially
+      metrics: {
+        totalQuestions: questions.length,
+        avgAnswerTimeSec: 0,
+        overallConfidence: 0,
+        strengths: [],
+        improvements: [],
+      },
     });
     await session.save();
 
-    res.json({ questions });
+    res.json({ questions, sessionId: session._id });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to generate questions" });
@@ -151,7 +156,7 @@ app.post('/api/explanation', authenticateToken, async (req, res) => {
     
     If an answer is provided, you may reference it, but focus on explaining the concept itself.`;
     
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const explanation = response.text();
@@ -260,7 +265,7 @@ Focus on:
 
 Provide specific, actionable feedback for each question and overall performance.`;
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
@@ -305,7 +310,7 @@ Provide specific, actionable feedback for each question and overall performance.
 
 // --- Save Mock Interview Session & Compute Metrics ---
 app.post('/api/mock/session', authenticateToken, async (req, res) => {
-  const { role, description, answers, feedback } = req.body;
+  const { role, description, answers, feedback, sessionId } = req.body;
   const userId = req.user.userId;
   if (!answers || !Array.isArray(answers) || answers.length === 0) {
     return res.status(400).json({ error: 'answers array is required' });
@@ -318,31 +323,77 @@ app.post('/api/mock/session', authenticateToken, async (req, res) => {
     const confidences = answers.map(a => typeof a.confidenceScore === 'number' ? a.confidenceScore : null).filter(v => v !== null);
     const overallConfidence = confidences.length ? (confidences.reduce((s, v) => s + v, 0) / confidences.length) : undefined;
 
-    // Simple strengths/improvements extraction from feedback (heuristic)
+    // Extract strengths and improvements from feedback object
     const strengths = [];
     const improvements = [];
-    if (typeof feedback === 'string') {
+    if (feedback && typeof feedback === 'object') {
+      if (feedback.strengths && Array.isArray(feedback.strengths)) {
+        strengths.push(...feedback.strengths);
+      }
+      if (feedback.improvements && Array.isArray(feedback.improvements)) {
+        improvements.push(...feedback.improvements);
+      }
+    } else if (typeof feedback === 'string') {
       const lower = feedback.toLowerCase();
       if (lower.includes('strength')) strengths.push('Strengths highlighted in feedback');
       if (lower.includes('improve') || lower.includes('improvement')) improvements.push('Improvements suggested in feedback');
     }
 
-    const session = new InterviewSession({
-      userId,
-      role,
-      description,
-      answers,
-      feedback,
-      metrics: {
-        totalQuestions,
-        avgAnswerTimeSec,
-        overallConfidence,
-        strengths,
-        improvements,
-      },
-    });
+    let session;
+    
+    // Check if we should update an existing session or create a new one
+    if (sessionId) {
+      // Try to find and update existing session
+      session = await InterviewSession.findOne({ _id: sessionId, userId });
+      if (session) {
+        // Update existing session with answers and feedback
+        session.answers = answers;
+        session.feedback = feedback || null;
+        session.metrics = {
+          totalQuestions,
+          avgAnswerTimeSec,
+          overallConfidence,
+          strengths,
+          improvements,
+        };
+        await session.save();
+      } else {
+        // Session not found, create new one
+        session = new InterviewSession({
+          userId,
+          role,
+          description,
+          answers,
+          feedback: feedback || null,
+          metrics: {
+            totalQuestions,
+            avgAnswerTimeSec,
+            overallConfidence,
+            strengths,
+            improvements,
+          },
+        });
+        await session.save();
+      }
+    } else {
+      // Create new session
+      session = new InterviewSession({
+        userId,
+        role,
+        description,
+        answers,
+        feedback: feedback || null,
+        metrics: {
+          totalQuestions,
+          avgAnswerTimeSec,
+          overallConfidence,
+          strengths,
+          improvements,
+        },
+      });
+      await session.save();
+    }
 
-    await session.save();
     res.status(201).json({ sessionId: session._id, metrics: session.metrics });
   } catch (err) {
     console.error(err);
@@ -360,6 +411,142 @@ app.get('/api/analytics/history', authenticateToken, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch history' });
+  }
+});
+
+// --- Profile Management Endpoints ---
+
+// Get user profile
+app.get('/api/profile', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select('firstName lastName email username profile createdAt');
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json({ user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch profile' });
+  }
+});
+
+// Update user profile
+app.put('/api/profile', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const profileData = req.body;
+    
+    // Validate required fields
+    if (!profileData) {
+      return res.status(400).json({ error: 'Profile data is required' });
+    }
+
+    // Validate experience level if provided
+    if (profileData.experienceLevel && !['Entry Level', 'Mid Level', 'Senior Level', 'Executive'].includes(profileData.experienceLevel)) {
+      return res.status(400).json({ error: 'Invalid experience level' });
+    }
+
+    // Validate availability if provided
+    if (profileData.availability && !['Available', 'Not Available', 'Open to Opportunities'].includes(profileData.availability)) {
+      return res.status(400).json({ error: 'Invalid availability status' });
+    }
+
+    // Validate years of experience if provided
+    if (profileData.yearsOfExperience !== undefined) {
+      const years = parseInt(profileData.yearsOfExperience);
+      if (isNaN(years) || years < 0 || years > 50) {
+        return res.status(400).json({ error: 'Years of experience must be between 0 and 50' });
+      }
+    }
+
+    // Validate URLs if provided
+    const urlFields = ['linkedinUrl', 'githubUrl', 'portfolioUrl'];
+    for (const field of urlFields) {
+      if (profileData[field] && profileData[field].trim() !== '') {
+        const url = profileData[field].trim();
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+          profileData[field] = 'https://' + url;
+        }
+        // Basic URL validation
+        try {
+          new URL(profileData[field]);
+        } catch (e) {
+          return res.status(400).json({ error: `Invalid ${field} URL format` });
+        }
+      }
+    }
+
+    // Prevent email updates for security
+    if (profileData.email) {
+      return res.status(400).json({ error: 'Email cannot be changed. Contact support if needed.' });
+    }
+
+    // Update profile with validation
+    const updateData = {
+      ...profileData,
+      lastUpdated: new Date()
+    };
+
+    // Extract email from updateData if present
+    delete updateData.email;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { 
+        $set: { 
+          profile: updateData,
+          // Also allow updating basic info (excluding email)
+          ...(profileData.firstName && { firstName: profileData.firstName }),
+          ...(profileData.lastName && { lastName: profileData.lastName }),
+        }
+      },
+      { new: true, runValidators: true }
+    ).select('firstName lastName email username profile createdAt');
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ 
+      message: 'Profile updated successfully', 
+      user 
+    });
+  } catch (err) {
+    console.error(err);
+    if (err.code === 11000) {
+      return res.status(400).json({ error: 'Email already exists' });
+    }
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
+// Get profile statistics
+app.get('/api/profile/stats', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    
+    // Get interview session statistics
+    const sessions = await InterviewSession.find({ userId });
+    const totalSessions = sessions.length;
+    const totalQuestions = sessions.reduce((sum, session) => sum + (session.answers?.length || 0), 0);
+    const avgConfidence = sessions.length > 0 
+      ? sessions.reduce((sum, session) => sum + (session.metrics?.overallConfidence || 0), 0) / sessions.length 
+      : 0;
+    
+    // Get pinned questions count
+    const user = await User.findById(userId).select('pinnedQuestions');
+    const pinnedQuestionsCount = user?.pinnedQuestions?.length || 0;
+
+    res.json({
+      totalSessions,
+      totalQuestions,
+      avgConfidence: Math.round(avgConfidence * 100) / 100,
+      pinnedQuestionsCount,
+      joinDate: user?.createdAt
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch profile statistics' });
   }
 });
 
@@ -475,7 +662,7 @@ Provide specific study resources, practice exercises, or learning paths for each
 
     let recommendations = [];
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const text = response.text();
@@ -554,7 +741,7 @@ Format as a JSON array of insight strings.`;
 
     let insights = [];
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const text = response.text();

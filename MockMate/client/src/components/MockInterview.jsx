@@ -7,7 +7,7 @@ const MockInterview = () => {
   const navigate = useNavigate();
   const { token } = useContext(AuthContext);
   
-  const { questions, role, description } = location.state || { questions: [], role: "", description: "" };
+  const { questions, role, description, sessionId: initialSessionId } = location.state || { questions: [], role: "", description: "", sessionId: null };
   
   const [currentStep, setCurrentStep] = useState("mic-test"); // mic-test, interview, summary
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -18,7 +18,7 @@ const MockInterview = () => {
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [sessionId, setSessionId] = useState(null);
+  const [sessionId, setSessionId] = useState(initialSessionId);
   const [audioLevel, setAudioLevel] = useState(0);
   const [isTestingMic, setIsTestingMic] = useState(false);
   const [testTranscript, setTestTranscript] = useState("");
@@ -441,7 +441,8 @@ const MockInterview = () => {
           confidenceScore: Math.random() * 0.4 + 0.5, // Mock confidence 0.5-0.9
           topics: ["interview", "practice"] // Mock topics
         })),
-        feedback: feedbackData.feedback
+        feedback: feedbackData.feedback,
+        sessionId: sessionId // Include the session ID to update existing session
       };
       
       const sessionRes = await fetch("/api/mock/session", {

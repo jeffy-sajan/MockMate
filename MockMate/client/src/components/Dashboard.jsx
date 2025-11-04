@@ -14,6 +14,8 @@ const Dashboard = () => {
   const [interviewHistory, setInterviewHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [insightsCache, setInsightsCache] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -21,24 +23,42 @@ const Dashboard = () => {
         setLoading(true);
         setError("");
         
-        const [summaryRes, insightsRes, comparisonRes, historyRes] = await Promise.all([
-          fetch("/api/analytics/summary", { headers: { Authorization: `Bearer ${token}` } }),
-          fetch("/api/analytics/insights", { headers: { Authorization: `Bearer ${token}` } }),
-          fetch("/api/analytics/performance-comparison", { headers: { Authorization: `Bearer ${token}` } }),
-          fetch("/api/analytics/history", { headers: { Authorization: `Bearer ${token}` } })
-        ]);
-
-        if (!summaryRes.ok) throw new Error("Failed to fetch dashboard data");
+        // Check if dashboard data is cached in sessionStorage
+        const cachedDashboard = sessionStorage.getItem(`dashboard_${user?.username}`);
+        const lastSessionCount = sessionStorage.getItem(`lastSessionCount_${user?.username}`);
         
-        const summaryData = await summaryRes.json();
-        const insightsData = insightsRes.ok ? await insightsRes.json() : null;
-        const comparisonData = comparisonRes.ok ? await comparisonRes.json() : null;
-        const historyData = historyRes.ok ? await historyRes.json() : { sessions: [] };
-
-        setDashboardData(summaryData);
-        setInsights(insightsData);
-        setPerformanceComparison(comparisonData);
-        setInterviewHistory(historyData.sessions || []);
+        if (cachedDashboard) {
+          const parsedData = JSON.parse(cachedDashboard);
+          
+          // Check if new interviews were completed by comparing session counts
+          const currentSessionCount = parsedData.dashboardData?.totalSessions || 0;
+          
+          if (lastSessionCount === null || currentSessionCount > parseInt(lastSessionCount)) {
+            // Session count increased, need to fetch fresh data
+            sessionStorage.removeItem(`dashboard_${user?.username}`);
+            sessionStorage.removeItem(`lastSessionCount_${user?.username}`);
+        } else {
+          // Use cached data to show dashboard instantly
+          setDashboardData(parsedData.dashboardData);
+          setInsights(parsedData.insights);
+          setPerformanceComparison(parsedData.performanceComparison);
+          setInterviewHistory(parsedData.interviewHistory);
+          setLoading(false);
+          
+          // Show refreshing indicator
+          setIsRefreshing(true);
+          
+          // Fetch fresh data in background
+          setTimeout(async () => {
+            await fetchFreshData();
+            setIsRefreshing(false);
+          }, 100);
+          return;
+        }
+        }
+        
+        // Fetch fresh data
+        await fetchFreshData();
       } catch (err) {
         setError(err.message || "Failed to load dashboard");
       } finally {
@@ -46,10 +66,63 @@ const Dashboard = () => {
       }
     };
 
+    const fetchFreshData = async () => {
+      try {
+        // Check if insights are cached in localStorage
+        const cachedInsights = localStorage.getItem(`insights_${user?.username}`);
+        let insightsData = null;
+        
+        if (cachedInsights && insightsCache) {
+          // Use cached insights instead of fetching new ones
+          insightsData = insightsCache;
+        } else {
+          // Fetch insights only once or when needed
+          const insightsRes = await fetch("/api/analytics/insights", { 
+            headers: { Authorization: `Bearer ${token}` } 
+          });
+          if (insightsRes.ok) {
+            insightsData = await insightsRes.json();
+            setInsightsCache(insightsData);
+            localStorage.setItem(`insights_${user?.username}`, JSON.stringify(insightsData));
+          }
+        }
+        
+        const [summaryRes, comparisonRes, historyRes] = await Promise.all([
+          fetch("/api/analytics/summary", { headers: { Authorization: `Bearer ${token}` } }),
+          fetch("/api/analytics/performance-comparison", { headers: { Authorization: `Bearer ${token}` } }),
+          fetch("/api/analytics/history", { headers: { Authorization: `Bearer ${token}` } })
+        ]);
+
+        if (!summaryRes.ok) throw new Error("Failed to fetch dashboard data");
+        
+        const summaryData = await summaryRes.json();
+        const comparisonData = comparisonRes.ok ? await comparisonRes.json() : null;
+        const historyData = historyRes.ok ? await historyRes.json() : { sessions: [] };
+
+        setDashboardData(summaryData);
+        setInsights(insightsData);
+        setPerformanceComparison(comparisonData);
+        setInterviewHistory(historyData.sessions || []);
+
+        // Store dashboard data in sessionStorage for instant loading
+        const dashboardCache = {
+          dashboardData: summaryData,
+          insights: insightsData,
+          performanceComparison: comparisonData,
+          interviewHistory: historyData.sessions || [],
+          timestamp: Date.now()
+        };
+        sessionStorage.setItem(`dashboard_${user?.username}`, JSON.stringify(dashboardCache));
+        sessionStorage.setItem(`lastSessionCount_${user?.username}`, summaryData.totalSessions || 0);
+      } catch (err) {
+        setError(err.message || "Failed to load dashboard");
+      }
+    };
+
     if (token) {
       fetchDashboardData();
     }
-  }, [token]);
+  }, [token, user, insightsCache]);
 
   const COLORS = ['#8B5CF6', '#06B6D4', '#10B981', '#F59E0B', '#EF4444'];
 
@@ -91,9 +164,21 @@ const Dashboard = () => {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Welcome Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold gradient-text mb-4">
-            Welcome back, {user?.username}! 👋
-          </h1>
+          <div className="flex items-center justify-center space-x-2 mb-4">
+            <h1 className="text-4xl font-bold gradient-text">
+              Welcome back, {user?.username}! 👋
+            </h1>
+            {isRefreshing && (
+              <div className="relative">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-purple-600 border-t-transparent"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </div>
+              </div>
+            )}
+          </div>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Your AI-powered interview analytics dashboard is ready. Track your progress, discover insights, and accelerate your interview success.
           </p>
@@ -179,42 +264,83 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* AI Insights Cards */}
+            {/* AI Insights Cards - Redesigned */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-6">
-                <h4 className="font-semibold text-indigo-800 mb-4 flex items-center space-x-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                  </svg>
-                  <span>AI Insights</span>
-                </h4>
-                <ul className="space-y-3">
+              {/* Performance Insights */}
+              <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 border border-indigo-200 rounded-xl p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-5">
+                  <h4 className="font-bold text-indigo-900 text-lg flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
+                    </div>
+                    <span>Performance Insights</span>
+                  </h4>
+                </div>
+                <div className="space-y-4">
                   {(insights.insights || []).map((insight, index) => (
-                    <li key={index} className="flex items-start space-x-2 text-indigo-700">
-                      <span className="text-indigo-500 mt-1">💡</span>
-                      <span className="text-sm">{insight}</span>
-                    </li>
+                    <div key={index} className="flex items-start space-x-3 p-4 bg-white rounded-lg border border-indigo-100 hover:shadow-md transition-shadow">
+                      <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                        {index + 1}
+                      </div>
+                      <p className="text-sm text-gray-700 leading-relaxed flex-1">{insight}</p>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
 
-              <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-6">
-                <h4 className="font-semibold text-emerald-800 mb-4 flex items-center space-x-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  <span>Predictions</span>
-                </h4>
-                <ul className="space-y-3">
+              {/* Future Predictions */}
+              <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 border border-emerald-200 rounded-xl p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-5">
+                  <h4 className="font-bold text-emerald-900 text-lg flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                    <span>Future Predictions</span>
+                  </h4>
+                </div>
+                <div className="space-y-4">
                   {(insights.predictions || []).map((prediction, index) => (
-                    <li key={index} className="flex items-start space-x-2 text-emerald-700">
-                      <span className="text-emerald-500 mt-1">🔮</span>
-                      <span className="text-sm">{prediction}</span>
-                    </li>
+                    <div key={index} className="flex items-start space-x-3 p-4 bg-white rounded-lg border border-emerald-100 hover:shadow-md transition-shadow">
+                      <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                        {index + 1}
+                      </div>
+                      <p className="text-sm text-gray-700 leading-relaxed flex-1">{prediction}</p>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             </div>
+
+            {/* Refresh Insights Button */}
+            {/* <div className="flex justify-end mb-4">
+              <button
+                onClick={async () => {
+                  try {
+                    const insightsRes = await fetch("/api/analytics/insights", { 
+                      headers: { Authorization: `Bearer ${token}` } 
+                    });
+                    if (insightsRes.ok) {
+                      const freshInsights = await insightsRes.json();
+                      setInsights(freshInsights);
+                      setInsightsCache(freshInsights);
+                      localStorage.setItem(`insights_${user?.username}`, JSON.stringify(freshInsights));
+                    }
+                  } catch (err) {
+                    console.error("Failed to refresh insights:", err);
+                  }
+                }}
+                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 shadow-sm hover:shadow-md"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span className="font-medium">Refresh AI Insights</span>
+              </button>
+            </div> */}
 
             {/* Achievements */}
             {insights.achievements && insights.achievements.length > 0 && (

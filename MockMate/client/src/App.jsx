@@ -11,6 +11,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import GenerateQuestions from "./components/GenerateQuestions";
 import MockInterview from "./components/MockInterview";
 import SessionDetails from "./components/SessionDetails";
+import Profile from "./components/Profile";
 import AdminLogin from "./components/AdminLogin";
 import AdminDashboard from "./components/AdminDashboard";
 import Hero from "./components/Hero";
@@ -61,6 +62,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <SessionDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
                 </ProtectedRoute>
               }
             />

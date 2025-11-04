@@ -26,6 +26,32 @@ const userSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   pinnedQuestions: [pinnedQuestionSchema],
   goals: [goalSchema],
+  // Profile fields
+  profile: {
+    preferredJobRole: { type: String, default: "" },
+    experienceLevel: { 
+      type: String, 
+      enum: ["Entry Level", "Mid Level", "Senior Level", "Executive"], 
+      default: "Entry Level" 
+    },
+    focusAreas: [{ type: String }], // Array of focus areas like ["Frontend", "Backend", "Full Stack"]
+    bio: { type: String, default: "" },
+    location: { type: String, default: "" },
+    phone: { type: String, default: "" },
+    linkedinUrl: { type: String, default: "" },
+    githubUrl: { type: String, default: "" },
+    portfolioUrl: { type: String, default: "" },
+    skills: [{ type: String }], // Array of technical skills
+    yearsOfExperience: { type: Number, min: 0, max: 50, default: 0 },
+    currentCompany: { type: String, default: "" },
+    jobTitle: { type: String, default: "" },
+    availability: { 
+      type: String, 
+      enum: ["Available", "Not Available", "Open to Opportunities"], 
+      default: "Open to Opportunities" 
+    },
+    lastUpdated: { type: Date, default: Date.now }
+  }
 });
 
 module.exports = mongoose.model('User', userSchema);

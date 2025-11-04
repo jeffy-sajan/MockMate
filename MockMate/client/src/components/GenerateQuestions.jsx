@@ -14,6 +14,7 @@ const GenerateQuestions = () => {
   const [pinned, setPinned] = useState([]);
   const [pinError, setPinError] = useState("");
   const [pinnedOrder, setPinnedOrder] = useState([]); // Track order of pinned questions
+  const [sessionId, setSessionId] = useState(null); // Store session ID for mock interview
 
   // Fetch pinned questions on mount
   useEffect(() => {
@@ -51,6 +52,7 @@ const GenerateQuestions = () => {
       const data = await res.json();
       if (res.ok) {
         setQuestions(Array.isArray(data.questions) ? data.questions : []);
+        setSessionId(data.sessionId); // Store the session ID
       } else {
         setError(data.error || "Failed to generate questions");
       }
@@ -145,7 +147,8 @@ const GenerateQuestions = () => {
       state: { 
         questions: questions,
         role: role,
-        description: description 
+        description: description,
+        sessionId: sessionId // Pass the session ID
       } 
     });
   };

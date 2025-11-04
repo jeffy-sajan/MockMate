@@ -36,7 +36,8 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-4">
             <NavLink to="/dashboard" className={navLinkClass} >Dashboard</NavLink>
             <NavLink to="/generate" className={navLinkClass}>Practice</NavLink>
-            <NavLink to="/mock-interview" className={navLinkClass}>Mock Interview</NavLink>
+            {/* <NavLink to="/mock-interview" className={navLinkClass}>Mock Interview</NavLink> */}
+            {token && <NavLink to="/profile" className={navLinkClass}>Profile</NavLink>}
           </div>
 
           <div className="hidden md:flex items-center gap-3">
@@ -74,6 +75,7 @@ const Navbar = () => {
               <NavLink onClick={() => setIsOpen(false)} to="/dashboard" className={navLinkClass}>Dashboard</NavLink>
               <NavLink onClick={() => setIsOpen(false)} to="/generate" className={navLinkClass}>Practice</NavLink>
               <NavLink onClick={() => setIsOpen(false)} to="/mock-interview" className={navLinkClass}>Mock Interview</NavLink>
+              {token && <NavLink onClick={() => setIsOpen(false)} to="/profile" className={navLinkClass}>Profile</NavLink>}
             </div>
             <div className="mt-3 flex items-center gap-2">
               {!token ? (

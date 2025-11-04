@@ -16,12 +16,30 @@ const metricsSchema = new mongoose.Schema({
   improvements: [{ type: String }],
 });
 
+const feedbackSchema = new mongoose.Schema({
+  overallScore: { type: Number, min: 0, max: 100 },
+  overallAssessment: { type: String },
+  strengths: [{ type: String }],
+  improvements: [{ type: String }],
+  questionAnalysis: [{
+    questionNumber: { type: Number },
+    question: { type: String },
+    answer: { type: String },
+    score: { type: Number, min: 0, max: 100 },
+    assessment: { type: String },
+    strengths: [{ type: String }],
+    improvements: [{ type: String }]
+  }],
+  recommendations: [{ type: String }],
+  nextSteps: [{ type: String }]
+}, { _id: false });
+
 const interviewSessionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   role: { type: String },
   description: { type: String },
   answers: [answerSchema],
-  feedback: { type: String },
+  feedback: feedbackSchema,
   metrics: metricsSchema,
   createdAt: { type: Date, default: Date.now },
 });
