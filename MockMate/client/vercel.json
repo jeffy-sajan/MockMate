@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://mockmate-kggq.onrender.com"
+      "destination": "https://mockmate-kggq.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",
