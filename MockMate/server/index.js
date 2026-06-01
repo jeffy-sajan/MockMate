@@ -4,6 +4,9 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+
+// Debug: Print all environment variables to diagnose .env loading issues
+console.log('process.env:', process.env);
 const cors = require('cors');
 
 const User = require('./models/User');
@@ -12,8 +15,12 @@ const authenticateToken = require('./middleware');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
+
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+
+// Debug: Print MONGODB_URI to verify it's loaded
+console.log('MONGODB_URI:', process.env.MONGODB_URI);
 
 app.use(cors());
 app.use(express.json());

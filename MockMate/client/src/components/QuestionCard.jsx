@@ -2,6 +2,7 @@ import React, { useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import Collapsible from "./ui/collapsible";
 import Drawer from "./ui/drawer";
+import { API_BASE_URL } from "../lib/api";
 
 const QuestionCard = ({ question, answer, isPinned, onPin, onUnpin }) => {
   const { token } = useContext(AuthContext);
@@ -20,7 +21,7 @@ const QuestionCard = ({ question, answer, isPinned, onPin, onUnpin }) => {
       setExplanationError("");
       try {
         console.log("Calling /api/explanation with:", { question, answer });
-        const res = await fetch("http://localhost:5000/api/explanation", {
+        const res = await fetch(`${API_BASE_URL}/api/explanation`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

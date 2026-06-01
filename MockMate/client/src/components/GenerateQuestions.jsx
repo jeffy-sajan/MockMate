@@ -2,6 +2,7 @@ import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import QuestionCard from "./QuestionCard";
+import { API_BASE_URL } from "../lib/api";
 
 const GenerateQuestions = () => {
   const { token } = useContext(AuthContext);
@@ -20,7 +21,7 @@ const GenerateQuestions = () => {
   useEffect(() => {
     const fetchPinned = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/pinned", {
+        const res = await fetch(`${API_BASE_URL}/api/pinned`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -41,7 +42,7 @@ const GenerateQuestions = () => {
     setQuestions([]);
     setPinError("");
     try {
-      const res = await fetch("http://localhost:5000/api/questions", {
+      const res = await fetch(`${API_BASE_URL}/api/questions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -67,7 +68,7 @@ const GenerateQuestions = () => {
     console.log("Token present:", token ? "Yes" : "No");
     setPinError("");
     try {
-      const res = await fetch("http://localhost:5000/api/pin", {
+      const res = await fetch(`${API_BASE_URL}/api/pin`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -98,7 +99,7 @@ const GenerateQuestions = () => {
     console.log("Token present:", token ? "Yes" : "No");
     setPinError("");
     try {
-      const res = await fetch("http://localhost:5000/api/unpin", {
+      const res = await fetch(`${API_BASE_URL}/api/unpin`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -1,4 +1,4 @@
-export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+export const API_BASE_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
 export async function apiPost(path, body, options = {}) {
   const res = await fetch(`${API_BASE_URL}${path}`, {

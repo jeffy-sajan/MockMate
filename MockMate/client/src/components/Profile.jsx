@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import { API_BASE_URL } from "../lib/api";
 
 const Profile = () => {
   const { token } = useContext(AuthContext);
@@ -59,7 +60,7 @@ const Profile = () => {
 
   const fetchProfile = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/profile", {
+      const res = await fetch(`${API_BASE_URL}/api/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -97,7 +98,7 @@ const Profile = () => {
 
   const fetchStats = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/profile/stats", {
+      const res = await fetch(`${API_BASE_URL}/api/profile/stats`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -187,7 +188,7 @@ const Profile = () => {
     delete dataToSubmit.email; // Remove email from submission
 
     try {
-      const res = await fetch("http://localhost:5000/api/profile", {
+      const res = await fetch(`${API_BASE_URL}/api/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
