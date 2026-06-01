@@ -4,9 +4,6 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-
-// Debug: Print all environment variables to diagnose .env loading issues
-console.log('process.env:', process.env);
 const cors = require('cors');
 
 const User = require('./models/User');
@@ -19,15 +16,16 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
-// Debug: Print MONGODB_URI to verify it's loaded
-console.log('MONGODB_URI:', process.env.MONGODB_URI);
-
 app.use(cors());
 app.use(express.json());
 
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('MongoDB Atlas connected!'))
   .catch(err => console.error('MongoDB connection error:', err));
+
+app.get('/api/health', (_req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 
 // Registration endpoint
 app.post('/api/register', async (req, res) => {

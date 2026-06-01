@@ -1,8 +1,12 @@
 {
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://YOUR-RENDER-BACKEND.onrender.com/api/$1"
+      "source": "/api/:path*",
+      "destination": "https://mockmate-kggq.onrender.com"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
